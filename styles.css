@@ -1,0 +1,72 @@
+/**
+ * Stream Chat Rewards Cleaner - Instant CSS Rules (Zero Flicker)
+ * Active by default across Chromium (Chrome, Opera, Edge) and Gecko (Firefox).
+ */
+
+/* ==========================================================================
+   TWITCH CHANNEL POINTS SUPPRESSION (ACTIVE BY DEFAULT)
+   Matches any message row containing channel points icons, notice lines or reward wrappers
+   ========================================================================== */
+.chat-line__message:has(img[src*="channel-points"]),
+.chat-line__message:has(img[alt*="pontos" i]),
+.chat-line__message:has(img[alt*="points" i]),
+.chat-line__status:has(img[src*="channel-points"]),
+.chat-line__status:has(img[alt*="pontos" i]),
+.chat-line__status:has(img[alt*="points" i]),
+div[data-test-selector="user-notice-line"]:has(img[src*="channel-points"]),
+div[data-test-selector="user-notice-line"]:has(.channel-points-reward-line),
+div[data-a-target="chat-line-message"]:has(img[src*="channel-points"]),
+.chat-scrollable-area__message-container > div:has(img[src*="channel-points"]),
+.chat-scrollable-area__message-container > div:has(img[src*="channel-points-icons"]),
+.chat-scrollable-area__message-container > div:has(.channel-points-reward-line),
+.chat-line__message:has(.channel-points-reward-line),
+.chat-line__message:has([data-test-selector="channel-points-reward-icon"]),
+.chat-line__message:has([data-a-target="chat-channel-points-reward-name"]),
+.chat-line__status:has(.channel-points-reward-line),
+.chat-line__message--highlighted:has([data-test-selector="channel-points-reward-icon"]),
+.channel-points-reward-line {
+  display: none !important;
+}
+
+/* ==========================================================================
+   KICK REWARDS SUPPRESSION (ACTIVE BY DEFAULT)
+   Targets Kick's virtualized chat list ([data-index]) and reward card components
+   ========================================================================== */
+#chatroom-messages div[data-index]:has(p.line-clamp-2),
+#chatroom-messages div[data-index]:has(.border-l-4),
+#chatroom-messages div[data-index]:has(.px-px),
+div[data-index]:has(p.line-clamp-2),
+div[data-index]:has(.border-l-4),
+div[data-index]:has(.px-px),
+div.px-px:has(.border-l-4),
+div[class*="border-l-4"][class*="bg-surface-bg-default"],
+div:has(> .px-px > div[class*="border-l-4"]),
+[data-stream-cleaner-hidden="true"],
+[data-kick-reward-card="true"] {
+  display: none !important;
+}
+
+/* ==========================================================================
+   OVERRIDE ONLY IF EXPLICITLY DISABLED VIA EXTENSION POPUP
+   ========================================================================== */
+html[data-hide-twitch-rewards="false"] .chat-line__message:has(img[src*="channel-points"]),
+html[data-hide-twitch-rewards="false"] .chat-line__status:has(img[src*="channel-points"]),
+html[data-hide-twitch-rewards="false"] div[data-test-selector="user-notice-line"]:has(img[src*="channel-points"]),
+html[data-hide-twitch-rewards="false"] div[data-a-target="chat-line-message"]:has(img[src*="channel-points"]),
+html[data-hide-twitch-rewards="false"] .chat-scrollable-area__message-container > div:has(img[src*="channel-points"]),
+html[data-hide-twitch-rewards="false"] .chat-line__message:has(.channel-points-reward-line),
+html[data-hide-twitch-rewards="false"] .chat-line__status:has(.channel-points-reward-line),
+html[data-hide-twitch-rewards="false"] .channel-points-reward-line {
+  display: block !important;
+}
+
+html[data-hide-kick-rewards="false"] #chatroom-messages div[data-index]:has(p.line-clamp-2),
+html[data-hide-kick-rewards="false"] #chatroom-messages div[data-index]:has(.border-l-4),
+html[data-hide-kick-rewards="false"] #chatroom-messages div[data-index]:has(.px-px),
+html[data-hide-kick-rewards="false"] div[data-index]:has(p.line-clamp-2),
+html[data-hide-kick-rewards="false"] div[data-index]:has(.border-l-4),
+html[data-hide-kick-rewards="false"] div[data-index]:has(.px-px),
+html[data-hide-kick-rewards="false"] div.px-px:has(.border-l-4),
+html[data-hide-kick-rewards="false"] div[class*="border-l-4"][class*="bg-surface-bg-default"] {
+  display: block !important;
+}

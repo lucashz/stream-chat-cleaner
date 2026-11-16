@@ -1,0 +1,24 @@
+{
+  "name": "stream-chat-cleaner",
+  "version": "1.0.0",
+  "description": "Chrome Extension (MV3) & Playwright Inspector to clean and hide Kick/Twitch channel point rewards",
+  "main": "inspect-rewards.js",
+  "scripts": {
+    "inspect": "node inspect-rewards.js",
+    "inspect:headed": "node inspect-rewards.js --headed"
+  },
+  "keywords": [
+    "kick",
+    "twitch",
+    "channel-points",
+    "chat-cleaner",
+    "chrome-extension",
+    "manifest-v3",
+    "playwright"
+  ],
+  "author": "Antigravity Engineering",
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Stream Chat Rewards Cleaner</title>
+  <style>
+    :root {
+      --bg-base: #0f1115;
+      --bg-surface: #181b21;
+      --bg-card: #20242c;
+      --bg-input: #121418;
+      --border-color: #2d323e;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --kick-green: #53fc18;
+      --kick-green-glow: rgba(83, 252, 24, 0.25);
+      --twitch-purple: #9146ff;
+      --twitch-purple-glow: rgba(145, 70, 255, 0.25);
+      --accent-danger: #ef4444;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 360px;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      font-size: 13px;
+      line-height: 1.4;
+      padding: 16px;
+      user-select: none;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--kick-green), var(--twitch-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 12px rgba(83, 252, 24, 0.2);
+    }
+
+    .brand-icon svg {
+      width: 16px;
+      height: 16px;
+      fill: #000;
+    }
+
+    .brand-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: #fff;
+    }
+
+    .brand-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 9999px;
+      background: #232731;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+
+    /* Status Pill */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      margin-bottom: 14px;
+      font-size: 11px;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #6b7280;
+    }
+
+    .status-dot.active-kick {
+      background: var(--kick-green);
+      box-shadow: 0 0 8px var(--kick-green);
+    }
+
+    .status-dot.active-twitch {
+      background: var(--twitch-purple);
+      box-shadow: 0 0 8px var(--twitch-purple);
+    }
+
+    /* Section Cards */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: #3b4252;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .platform-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .indicator-kick { background: var(--kick-green); }
+    .indicator-twitch { background: var(--twitch-purple); }
+
+    /* Switch Rows */
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .switch-label-group {
+      flex: 1;
+    }
+
+    .switch-label {
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--text-main);
+      display: block;
+    }
+
+    .switch-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Switch Toggle */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #2e3440;
+      transition: 0.25s;
+      border-radius: 22px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #d8dee9;
+      transition: 0.25s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider.kick-slider {
+      background-color: var(--kick-green);
+    }
+
+    input:checked + .slider.kick-slider:before {
+      background-color: #000;
+      transform: translateX(18px);
+    }
+
+    input:checked + .slider.twitch-slider {
+      background-color: var(--twitch-purple);
+    }
+
+    input:checked + .slider.twitch-slider:before {
+      background-color: #fff;
+      transform: translateX(18px);
+    }
+
+    /* Keyword Input */
+    .keyword-form {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .text-input {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 12px;
+      padding: 7px 10px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .text-input:focus {
+      border-color: #4c566a;
+    }
+
+    .btn-add {
+      background: #2b303c;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-add:hover {
+      background: #3b4252;
+    }
+
+    /* Chips container */
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      min-height: 24px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #252a34;
+      border: 1px solid #363d4c;
+      border-radius: 9999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      color: #e5e7eb;
+    }
+
+    .chip-remove {
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--text-dim);
+      font-size: 13px;
+      line-height: 1;
+      padding: 0 2px;
+    }
+
+    .chip-remove:hover {
+      color: var(--accent-danger);
+    }
+
+    .no-keywords {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 8px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">Chat Cleaner</div>
+      </div>
+    </div>
+    <span class="brand-badge">MV3</span>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar" id="statusBar">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">Verificando aba ativa...</span>
+  </div>
+
+  <!-- Kick Settings -->
+  <div class="card">
+    <div class="card-title">
+      <div class="platform-indicator indicator-kick"></div>
+      Kick.com
+    </div>
+    <div class="switch-row">
+      <div class="switch-label-group">
+        <span class="switch-label">Ocultar todos os resgates</span>
+        <span class="switch-desc">Remove cards verdes e bônus de bots/XP</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggleKickAll" checked>
+        <span class="slider kick-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Twitch Settings -->
+  <div class="card">
+    <div class="card-title">
+      <div class="platform-indicator indicator-twitch"></div>
+      Twitch.tv
+    </div>
+    <div class="switch-row">
+      <div class="switch-label-group">
+        <span class="switch-label">Ocultar todos os resgates</span>
+        <span class="switch-desc">Remove avisos e mensagens de pontos</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggleTwitchAll" checked>
+        <span class="slider twitch-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Keyword Filtering -->
+  <div class="card">
+    <div class="card-title">Filtro por Palavra-Chave</div>
+    <span class="switch-desc">Oculte recompensas específicas pelo nome:</span>
+    <form class="keyword-form" id="keywordForm">
+      <input type="text" id="keywordInput" class="text-input" placeholder="ex: PokeIdle, +15% XP..." autocomplete="off">
+      <button type="submit" class="btn-add">Adicionar</button>
+    </form>
+    <div class="chips-container" id="chipsContainer"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>Zero Flicker (:has() CSS)</span>
+    <span>v1.0.0</span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
