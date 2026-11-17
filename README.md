@@ -1,73 +1,71 @@
 # 🧹 Stream Chat Rewards Cleaner (Kick & Twitch)
 
-Extensão de Navegador Universal (Manifest V3) de alta performance e script de automação Playwright para suprimir resgates de recompensas da loja de pontos, bônus de minigames (PokeIdle) e poluição visual nos chats da **Kick** e da **Twitch**.
+Extensão de Navegador Universal (Manifest V3) de alta performance que elimina o spam de resgates de pontos e minigames (como **PokeIdle**, bônus de XP, etc.) nos chats da **Kick** e da **Twitch**, mantendo o chat limpo e sem poluição visual.
+
+> 🛡️ **Segurança para o Streamer:** Esta extensão preserva 100% das notificações que importam: **Inscrições (Subs e Resubs)**, **Subs de Presente (Gift Subs)**, **Doações de Bits** e **Doações de Kicks** continuam aparecendo normalmente na tela!
 
 ---
 
-## 🚀 Instalação por Navegador
+## 📥 Como Baixar
 
-A extensão foi desenvolvida em formato **Universal MV3**, compatível com Chromium (Chrome, Opera, Opera GX, Brave, Edge) e Gecko (Firefox).
+1. Baixe o arquivo comprimido da extensão:
+   - **[Download Direto do ZIP (GitHub)](https://github.com/lucashz/stream-chat-cleaner/archive/refs/heads/main.zip)**
+2. Extraia o arquivo `.zip` em qualquer pasta no seu computador (por exemplo, na pasta `Documentos` ou `Downloads`).
+3. Uma pasta contendo os arquivos da extensão (como `manifest.json`, `styles.css`, `content.js`, etc.) será criada.
+
+---
+
+## 🚀 Como Instalar no Seu Navegador (Menos de 1 minuto)
+
+A extensão é em formato **Universal Manifest V3**, funcionando em todos os navegadores modernos:
 
 ### 🔴 Opera & Opera GX
-1. Abra o navegador e digite na barra de endereços: `opera://extensions`
-2. No canto superior direito, ative a chave **"Modo do desenvolvedor"** (Developer mode).
-3. Clique no botão **"Carregar extensão descompactada"** (Load unpacked).
-4. Selecione a pasta:
-   ```
-   D:\lsk\stream-chat-cleaner
-   ```
-5. *(Opcional no Opera GX)*: Se você usa o painel lateral ou janelas popout de chat da Twitch/Kick, a extensão funcionará normalmente pois escuta todos os subdomínios `*.kick.com` e `*.twitch.tv`.
-
----
-
-### 🦊 Mozilla Firefox
-1. Abra o Firefox e acesse: `about:debugging#/runtime/this-firefox`
-2. Clique no botão **"Carregar extensão temporária..."** (Load Temporary Add-on...).
-3. Navegue até `D:\lsk\stream-chat-cleaner` e selecione o arquivo:
-   ```
-   manifest.json
-   ```
-4. O Firefox carregará a extensão instantaneamente com o ID configurado em `browser_specific_settings.gecko`.
-*(Nota: O Firefox oferece suporte nativo completo ao seletor CSS `:has()` desde a versão 121).*
+1. Digite na barra de endereços: `opera://extensions`
+2. No canto superior direito da tela, ative a chave **"Modo do desenvolvedor"** (*Developer mode*).
+3. Clique no botão **"Carregar extensão descompactada"** (*Load unpacked*).
+4. Selecione a pasta que você extraiu no Passo 1 e confirme.
+5. Abra a Kick ou Twitch e dê **F5** na live para ativar a limpeza!
 
 ---
 
 ### 🟡 Google Chrome / Brave / Edge
-1. Acesse: `chrome://extensions/`
-2. Ative a chave **"Modo do desenvolvedor"**.
-3. Clique em **"Carregar sem compactação"**.
-4. Selecione a pasta `D:\lsk\stream-chat-cleaner`.
+1. Digite na barra de endereços: `chrome://extensions`
+2. No canto superior direito da tela, ative a chave **"Modo do desenvolvedor"** (*Developer mode*).
+3. Clique no botão **"Carregar sem compactação"** (*Load unpacked*).
+4. Selecione a pasta que você extraiu no Passo 1 e confirme.
+5. Abra a live da Kick ou Twitch e pressione **F5**!
 
 ---
 
-## ⚙️ Funcionalidades da Extensão
-
-- **Zero Flicker (:has() CSS Engine):** As mensagens de resgate são eliminadas pelo motor de estilo do navegador antes mesmo da pintura do layout na tela.
-- **Heurística Resiliente na Kick:** Detecta cards de resgate mesmo se as classes dinâmicas do Tailwind mudarem, verificando:
-  - O ícone SVG com 3 círculos (token da loja de pontos).
-  - A faixa lateral verde néon Kick (`#53fc18` / `#00e701`).
-  - O verbo de sistema `resgatou` / `redeemed` sem dois-pontos (`:`) após o username.
-- **Filtro de Palavra-Chave:** Permite silenciar apenas bônus específicos (ex: `PokeIdle`, `+15% XP`, `Minigame`) ou ocultar todos os resgates globalmente.
-- **Suporte a SPA (Single Page Application):** Reconecta o observador de mutações automaticamente ao trocar de streamer/canal sem necessidade de recarregar a página (F5).
+### 🦊 Mozilla Firefox
+1. Abra o Firefox e digite: `about:debugging#/runtime/this-firefox`
+2. Clique no botão **"Carregar extensão temporária..."** (*Load Temporary Add-on...*).
+3. Entre na pasta que você extraiu e selecione o arquivo:
+   ```
+   manifest.json
+   ```
+4. Pronto! O Firefox carregará a extensão instantaneamente. Abra a live e dê **F5**.
 
 ---
 
-## 🔍 Script Playwright de Inspeção (`inspect-rewards.js`)
+## ⚙️ Principais Recursos
 
-O script conecta a uma live da Kick, aguarda o container do chat e intercepta qualquer resgate de recompensa em tempo real, extraindo o DOM exato, classes e hierarquia de seletores CSS.
+- **Zero Flicker (:has() CSS Engine):** As mensagens de spam de pontos são suprimidas instantaneamente pelo motor de estilos do navegador antes mesmo da pintura dos pixels na tela.
+- **Preservação de Eventos Nobres:** Subscriptions (inscrições normais e de presente), doações em Bits e Kicks nunca são afetadas.
+- **Filtro Customizável por Palavra-Chave:** No ícone da extensão, você pode optar por ocultar todos os resgates ou bloquear apenas recompensas específicas (ex: bloquear apenas `PokeIdle` e permitir outras).
+- **Suporte Total a SPA:** Funciona continuamente ao trocar de canal ou streamer sem quebrar o monitoramento.
 
-### Pré-requisitos:
-Se for rodar de forma isolada nesta pasta:
+---
+
+## 🛠️ Ferramenta para Desenvolvedores: Inspetor Playwright
+
+O projeto inclui o script `inspect-rewards.js` para monitorar e capturar o DOM de novos tipos de recompensas e seletores da Kick em tempo real:
+
 ```bash
+# Instalação de dependências
 npm install
-```
-*(Nota: se você já possui o Playwright no ambiente `StreamOS`, o script detecta o binário automaticamente).*
 
-### Execução:
-```bash
-# Executar apontando para uma live específica (janela visível)
+# Executar monitorando um canal específico (com interface visível)
 node inspect-rewards.js https://kick.com/xqc --headed
-
-# Executar em modo headless com arquivo de saída customizado
-node inspect-rewards.js https://kick.com/xqc --headless --output=meu-dump.html
 ```
+O script gera automaticamente o relatório `reward-dom-dump.html` com a árvore de seletores e o HTML capturado.
