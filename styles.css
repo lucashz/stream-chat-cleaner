@@ -6,23 +6,29 @@
 
 /* ==========================================================================
    TWITCH CHANNEL POINTS SUPPRESSION (PRESERVING SUBS & BITS)
-   Only hides lines with channel points coin icons that are NOT cheers or subs
+   Only hides lines with channel points icons/classes that are NOT cheers or subs
    ========================================================================== */
-.chat-line__status:has(img[src*="channel-points-icons"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
-.chat-line__status:has(img[alt*="pontos do canal" i]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
-.chat-line__status:has(img[alt*="channel points" i]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
-div[data-test-selector="user-notice-line"]:has(img[src*="channel-points-icons"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
-div[data-test-selector="user-notice-line"]:has(img[alt*="pontos do canal" i]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
-div[data-test-selector="user-notice-line"]:has(img[alt*="channel points" i]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
-.chat-line__message:has(img[src*="channel-points-icons"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
-.chat-scrollable-area__message-container > div:has(img[src*="channel-points-icons"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]) {
+.chat-scrollable-area__message-container > div:has(.channel-points-reward-line__icon):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.chat-scrollable-area__message-container > div:has(img[src*="channel-points"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.chat-scrollable-area__message-container > div:has(img[src*="custom-reward"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+div[data-test-selector="user-notice-line"]:has(.channel-points-reward-line__icon):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+div[data-test-selector="user-notice-line"]:has(img[src*="channel-points"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+div[data-test-selector="user-notice-line"]:has(img[src*="custom-reward"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+div[data-test-selector="user-notice-line"]:has(img[alt*="pontos" i]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+div[data-test-selector="user-notice-line"]:has(img[alt*="points" i]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.chat-line__status:has(.channel-points-reward-line__icon):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.chat-line__status:has(img[src*="channel-points"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.chat-line__status:has(img[alt*="pontos" i]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.chat-line__status:has(img[alt*="points" i]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.chat-line__message:has(.channel-points-reward-line__icon):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.chat-line__message:has(img[src*="channel-points"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.channel-points-reward-line {
   display: none !important;
 }
 
 /* ==========================================================================
    KICK REWARDS SUPPRESSION (PRESERVING SUBS & KICKS)
    p.line-clamp-2 is 100% exclusive to redeemed_reward in Kick's chatroom.
-   Generic .border-l-4 and .px-px are NEVER matched alone because Subs & Kicks use them.
    ========================================================================== */
 #chatroom-messages div[data-index]:has(p.line-clamp-2):not([data-stream-cleaner-safe="true"]),
 div[data-index]:has(p.line-clamp-2):not([data-stream-cleaner-safe="true"]) {
@@ -37,9 +43,11 @@ div[data-index]:has(p.line-clamp-2):not([data-stream-cleaner-safe="true"]) {
 /* ==========================================================================
    OVERRIDE ONLY IF EXPLICITLY DISABLED VIA EXTENSION POPUP
    ========================================================================== */
-html[data-hide-twitch-rewards="false"] .chat-line__status:has(img[src*="channel-points-icons"]),
-html[data-hide-twitch-rewards="false"] div[data-test-selector="user-notice-line"]:has(img[src*="channel-points-icons"]),
-html[data-hide-twitch-rewards="false"] .chat-line__message:has(img[src*="channel-points-icons"]) {
+html[data-hide-twitch-rewards="false"] .chat-scrollable-area__message-container > div:has(.channel-points-reward-line__icon),
+html[data-hide-twitch-rewards="false"] .chat-scrollable-area__message-container > div:has(img[src*="channel-points"]),
+html[data-hide-twitch-rewards="false"] div[data-test-selector="user-notice-line"]:has(img[src*="channel-points"]),
+html[data-hide-twitch-rewards="false"] .chat-line__status:has(img[src*="channel-points"]),
+html[data-hide-twitch-rewards="false"] .chat-line__message:has(img[src*="channel-points"]) {
   display: block !important;
 }
 

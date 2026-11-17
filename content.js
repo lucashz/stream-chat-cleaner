@@ -94,13 +94,6 @@
      2. SAFETY GUARDS & HEURISTICS (PRESERVING SUBS, BITS, KICKS)
      ========================================================================== */
 
-  /**
-   * Identifies events that MUST ALWAYS remain visible:
-   * - Subscriptions, Re-subs, and Gifted Subs (Kick & Twitch)
-   * - Bits / Cheering donations (Twitch)
-   * - Kicks donations (Kick)
-   * - Raids & Hosts
-   */
   function isProtectedEvent(node) {
     if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
 
@@ -173,7 +166,6 @@
 
   /**
    * Kick Reward Detection Heuristics
-   * p.line-clamp-2 is strictly exclusive to redeemed_reward in Kick's chatroom.
    */
   function inspectKickNode(node) {
     if (!node || node.nodeType !== Node.ELEMENT_NODE) return null;
@@ -183,7 +175,6 @@
       return null;
     }
 
-    // Check for Kick's exclusive reward paragraph component
     const pEl = node.tagName.toLowerCase() === 'p' && node.classList.contains('line-clamp-2')
       ? node
       : (node.querySelector ? node.querySelector('p.line-clamp-2') : null);
@@ -191,7 +182,6 @@
     const text = node.textContent || '';
     const hasRedeemVerb = /\b(resgatou|redeemed)\b/i.test(text);
 
-    // Only match if it has line-clamp-2 or explicitly has 'resgatou' without normal chat colon
     const isNormalChatWithColon = /:\s*\S+/.test(text) && !hasRedeemVerb;
     const isRewardCard = !!pEl || (hasRedeemVerb && !isNormalChatWithColon);
 
@@ -223,15 +213,17 @@
       return null;
     }
 
-    // 1. Channel Points Coin Image (signature of all Twitch rewards)
-    const hasChannelPointsImg = !!node.querySelector(
-      'img[src*="channel-points-icons"], img[alt*="pontos do canal" i], img[alt*="channel points" i]'
-    ) || (node.tagName.toLowerCase() === 'img' && (node.src || '').includes('channel-points-icons'));
+    // 1. Channel Points / Reward indicators
+    const hasRewardIcon = !!node.querySelector(
+      '.channel-points-reward-line__icon, .channel-points-reward-line, [data-test-selector="channel-points-reward-icon"], img[src*="channel-points"], img[src*="custom-reward"], img[alt*="pontos" i], img[alt*="points" i]'
+    );
 
     const text = node.textContent || '';
     const hasRedeemVerb = /\b(resgatou|redeemed)\b/i.test(text);
+    const hasPointsWord = /pontos|points|pokeidle|capture boost|\+\d+%/i.test(text);
 
-    const isReward = hasChannelPointsImg && hasRedeemVerb;
+    // Matches any redemption notice on Twitch that is not a sub or cheer
+    const isReward = hasRewardIcon || (hasRedeemVerb && hasPointsWord) || (hasRedeemVerb && !/:\s*\S+/.test(text));
 
     if (!isReward) return null;
 
@@ -272,11 +264,7 @@
     }
 
     if (IS_TWITCH) {
-      const row = node.closest(
-        '.chat-line__status, div[data-test-selector="user-notice-line"], .chat-line__message, [data-a-target="chat-line-message"]'
-      );
-      if (row) return row;
-
+      // Find direct child of chat-scrollable-area__message-container to hide the complete row + quote bar
       let curr = node;
       while (curr && curr.parentElement && !curr.parentElement.classList.contains('chat-scrollable-area__message-container')) {
         curr = curr.parentElement;
@@ -284,6 +272,11 @@
       if (curr && curr.parentElement && curr.parentElement.classList.contains('chat-scrollable-area__message-container')) {
         return curr;
       }
+
+      const row = node.closest(
+        '.chat-line__status, div[data-test-selector="user-notice-line"], .chat-line__message, [data-a-target="chat-line-message"]'
+      );
+      if (row) return row;
     }
 
     let current = node;
@@ -427,7 +420,7 @@
 
     if (IS_TWITCH) {
       const items = container.querySelectorAll(
-        '.chat-line__status, div[data-test-selector="user-notice-line"], .chat-line__message'
+        '.chat-scrollable-area__message-container > div, .chat-line__status, div[data-test-selector="user-notice-line"], .channel-points-reward-line__icon, .chat-line__message'
       );
       items.forEach((item) => {
         if (isProtectedEvent(item)) {
