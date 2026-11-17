@@ -1,72 +1,49 @@
 /**
  * Stream Chat Rewards Cleaner - Instant CSS Rules (Zero Flicker)
- * Active by default across Chromium (Chrome, Opera, Edge) and Gecko (Firefox).
+ * Exclusively targets channel point rewards and minigames (PokeIdle).
+ * Strictly preserves Subscriptions, Sub Gifts, Bits, Cheering, and Kicks Donations.
  */
 
 /* ==========================================================================
-   TWITCH CHANNEL POINTS SUPPRESSION (ACTIVE BY DEFAULT)
-   Matches any message row containing channel points icons, notice lines or reward wrappers
+   TWITCH CHANNEL POINTS SUPPRESSION (PRESERVING SUBS & BITS)
+   Only hides lines with channel points coin icons that are NOT cheers or subs
    ========================================================================== */
-.chat-line__message:has(img[src*="channel-points"]),
-.chat-line__message:has(img[alt*="pontos" i]),
-.chat-line__message:has(img[alt*="points" i]),
-.chat-line__status:has(img[src*="channel-points"]),
-.chat-line__status:has(img[alt*="pontos" i]),
-.chat-line__status:has(img[alt*="points" i]),
-div[data-test-selector="user-notice-line"]:has(img[src*="channel-points"]),
-div[data-test-selector="user-notice-line"]:has(.channel-points-reward-line),
-div[data-a-target="chat-line-message"]:has(img[src*="channel-points"]),
-.chat-scrollable-area__message-container > div:has(img[src*="channel-points"]),
-.chat-scrollable-area__message-container > div:has(img[src*="channel-points-icons"]),
-.chat-scrollable-area__message-container > div:has(.channel-points-reward-line),
-.chat-line__message:has(.channel-points-reward-line),
-.chat-line__message:has([data-test-selector="channel-points-reward-icon"]),
-.chat-line__message:has([data-a-target="chat-channel-points-reward-name"]),
-.chat-line__status:has(.channel-points-reward-line),
-.chat-line__message--highlighted:has([data-test-selector="channel-points-reward-icon"]),
-.channel-points-reward-line {
+.chat-line__status:has(img[src*="channel-points-icons"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.chat-line__status:has(img[alt*="pontos do canal" i]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.chat-line__status:has(img[alt*="channel points" i]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+div[data-test-selector="user-notice-line"]:has(img[src*="channel-points-icons"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+div[data-test-selector="user-notice-line"]:has(img[alt*="pontos do canal" i]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+div[data-test-selector="user-notice-line"]:has(img[alt*="channel points" i]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.chat-line__message:has(img[src*="channel-points-icons"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]),
+.chat-scrollable-area__message-container > div:has(img[src*="channel-points-icons"]):not(:has(img[src*="cheer"])):not([data-stream-cleaner-safe="true"]) {
   display: none !important;
 }
 
 /* ==========================================================================
-   KICK REWARDS SUPPRESSION (ACTIVE BY DEFAULT)
-   Targets Kick's virtualized chat list ([data-index]) and reward card components
+   KICK REWARDS SUPPRESSION (PRESERVING SUBS & KICKS)
+   p.line-clamp-2 is 100% exclusive to redeemed_reward in Kick's chatroom.
+   Generic .border-l-4 and .px-px are NEVER matched alone because Subs & Kicks use them.
    ========================================================================== */
-#chatroom-messages div[data-index]:has(p.line-clamp-2),
-#chatroom-messages div[data-index]:has(.border-l-4),
-#chatroom-messages div[data-index]:has(.px-px),
-div[data-index]:has(p.line-clamp-2),
-div[data-index]:has(.border-l-4),
-div[data-index]:has(.px-px),
-div.px-px:has(.border-l-4),
-div[class*="border-l-4"][class*="bg-surface-bg-default"],
-div:has(> .px-px > div[class*="border-l-4"]),
-[data-stream-cleaner-hidden="true"],
-[data-kick-reward-card="true"] {
+#chatroom-messages div[data-index]:has(p.line-clamp-2):not([data-stream-cleaner-safe="true"]),
+div[data-index]:has(p.line-clamp-2):not([data-stream-cleaner-safe="true"]) {
+  display: none !important;
+}
+
+/* Dynamic JS-tagged hidden nodes */
+[data-stream-cleaner-hidden="true"]:not([data-stream-cleaner-safe="true"]) {
   display: none !important;
 }
 
 /* ==========================================================================
    OVERRIDE ONLY IF EXPLICITLY DISABLED VIA EXTENSION POPUP
    ========================================================================== */
-html[data-hide-twitch-rewards="false"] .chat-line__message:has(img[src*="channel-points"]),
-html[data-hide-twitch-rewards="false"] .chat-line__status:has(img[src*="channel-points"]),
-html[data-hide-twitch-rewards="false"] div[data-test-selector="user-notice-line"]:has(img[src*="channel-points"]),
-html[data-hide-twitch-rewards="false"] div[data-a-target="chat-line-message"]:has(img[src*="channel-points"]),
-html[data-hide-twitch-rewards="false"] .chat-scrollable-area__message-container > div:has(img[src*="channel-points"]),
-html[data-hide-twitch-rewards="false"] .chat-line__message:has(.channel-points-reward-line),
-html[data-hide-twitch-rewards="false"] .chat-line__status:has(.channel-points-reward-line),
-html[data-hide-twitch-rewards="false"] .channel-points-reward-line {
+html[data-hide-twitch-rewards="false"] .chat-line__status:has(img[src*="channel-points-icons"]),
+html[data-hide-twitch-rewards="false"] div[data-test-selector="user-notice-line"]:has(img[src*="channel-points-icons"]),
+html[data-hide-twitch-rewards="false"] .chat-line__message:has(img[src*="channel-points-icons"]) {
   display: block !important;
 }
 
 html[data-hide-kick-rewards="false"] #chatroom-messages div[data-index]:has(p.line-clamp-2),
-html[data-hide-kick-rewards="false"] #chatroom-messages div[data-index]:has(.border-l-4),
-html[data-hide-kick-rewards="false"] #chatroom-messages div[data-index]:has(.px-px),
-html[data-hide-kick-rewards="false"] div[data-index]:has(p.line-clamp-2),
-html[data-hide-kick-rewards="false"] div[data-index]:has(.border-l-4),
-html[data-hide-kick-rewards="false"] div[data-index]:has(.px-px),
-html[data-hide-kick-rewards="false"] div.px-px:has(.border-l-4),
-html[data-hide-kick-rewards="false"] div[class*="border-l-4"][class*="bg-surface-bg-default"] {
+html[data-hide-kick-rewards="false"] div[data-index]:has(p.line-clamp-2) {
   display: block !important;
 }

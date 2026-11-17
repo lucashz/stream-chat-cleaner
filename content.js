@@ -2,6 +2,7 @@
  * Stream Chat Rewards Cleaner - Content Script
  * High-performance, zero-flicker suppression of channel point rewards and minigame clutter
  * Works on Kick.com and Twitch.tv across Chrome, Opera, Brave, Edge and Firefox.
+ * Strictly preserves Subscriptions, Sub Gifts, Bits, and Kicks Donations.
  */
 
 (function () {
@@ -90,28 +91,109 @@
   }
 
   /* ==========================================================================
-     2. HEURISTICS & DETECTION LOGIC
+     2. SAFETY GUARDS & HEURISTICS (PRESERVING SUBS, BITS, KICKS)
      ========================================================================== */
 
+  /**
+   * Identifies events that MUST ALWAYS remain visible:
+   * - Subscriptions, Re-subs, and Gifted Subs (Kick & Twitch)
+   * - Bits / Cheering donations (Twitch)
+   * - Kicks donations (Kick)
+   * - Raids & Hosts
+   */
+  function isProtectedEvent(node) {
+    if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+
+    const text = (node.textContent || '').toLowerCase();
+    const html = (node.innerHTML || '').toLowerCase();
+
+    // 1. Bits / Cheers (Twitch)
+    if (
+      text.includes('cheer') ||
+      text.includes('bits') ||
+      html.includes('cheermote') ||
+      html.includes('badge-bits') ||
+      !!node.querySelector('[data-test-selector*="cheer"], [data-test-selector*="bits"], img[src*="cheer"], img[alt*="cheer" i]')
+    ) {
+      return true;
+    }
+
+    // 2. Subscriptions / Sub Gifts (Kick & Twitch)
+    if (
+      text.includes('se inscreveu') ||
+      text.includes('inscreveu-se') ||
+      text.includes('inscrição') ||
+      text.includes('inscrições') ||
+      text.includes('subscribed') ||
+      text.includes('sub gifted') ||
+      text.includes('gifted a') ||
+      text.includes('presenteou') ||
+      text.includes('subgift') ||
+      text.includes('renovou') ||
+      text.includes('tier 1') ||
+      text.includes('tier 2') ||
+      text.includes('tier 3') ||
+      (node.hasAttribute('type') && (node.getAttribute('type') || '').includes('subscription')) ||
+      !!node.querySelector('[data-a-target*="sub-message"], [data-a-target*="subscription"], [type*="subscription"]')
+    ) {
+      return true;
+    }
+
+    // 3. Kicks Gifts (Kick)
+    if (
+      text.includes('kicks') ||
+      html.includes('kicksgifted') ||
+      html.includes('kicks_gifted') ||
+      !!node.querySelector('[data-ds-icon="Kicks"], [data-ds-icon="Kick"]')
+    ) {
+      return true;
+    }
+
+    // 4. Raids / Hosts
+    if (
+      text.includes('raid') ||
+      text.includes('invadindo') ||
+      text.includes('host') ||
+      text.includes('hosped')
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  function markAsSafe(node) {
+    const target = findMessageRowContainer(node);
+    if (target) {
+      target.setAttribute('data-stream-cleaner-safe', 'true');
+      target.removeAttribute('data-stream-cleaner-hidden');
+      target.style.removeProperty('display');
+    }
+  }
+
+  /**
+   * Kick Reward Detection Heuristics
+   * p.line-clamp-2 is strictly exclusive to redeemed_reward in Kick's chatroom.
+   */
   function inspectKickNode(node) {
     if (!node || node.nodeType !== Node.ELEMENT_NODE) return null;
 
+    if (isProtectedEvent(node)) {
+      markAsSafe(node);
+      return null;
+    }
+
+    // Check for Kick's exclusive reward paragraph component
     const pEl = node.tagName.toLowerCase() === 'p' && node.classList.contains('line-clamp-2')
       ? node
       : (node.querySelector ? node.querySelector('p.line-clamp-2') : null);
 
-    const hasBorderL4 = node.classList.contains('border-l-4') ||
-      (node.querySelector ? !!node.querySelector('.border-l-4') : false);
-
     const text = node.textContent || '';
     const hasRedeemVerb = /\b(resgatou|redeemed)\b/i.test(text);
 
+    // Only match if it has line-clamp-2 or explicitly has 'resgatou' without normal chat colon
     const isNormalChatWithColon = /:\s*\S+/.test(text) && !hasRedeemVerb;
-
-    const isRewardCard =
-      !!pEl ||
-      (hasBorderL4 && hasRedeemVerb) ||
-      (hasRedeemVerb && !isNormalChatWithColon);
+    const isRewardCard = !!pEl || (hasRedeemVerb && !isNormalChatWithColon);
 
     if (!isRewardCard) return null;
 
@@ -130,24 +212,26 @@
     };
   }
 
+  /**
+   * Twitch Reward Detection Heuristics
+   */
   function inspectTwitchNode(node) {
     if (!node || node.nodeType !== Node.ELEMENT_NODE) return null;
 
+    if (isProtectedEvent(node)) {
+      markAsSafe(node);
+      return null;
+    }
+
     // 1. Channel Points Coin Image (signature of all Twitch rewards)
     const hasChannelPointsImg = !!node.querySelector(
-      'img[src*="channel-points"], img[src*="custom-reward"], img[alt*="pontos" i], img[alt*="points" i]'
-    ) || (node.tagName.toLowerCase() === 'img' && ((node.src || '').includes('channel-points') || (node.alt || '').toLowerCase().includes('pontos')));
+      'img[src*="channel-points-icons"], img[alt*="pontos do canal" i], img[alt*="channel points" i]'
+    ) || (node.tagName.toLowerCase() === 'img' && (node.src || '').includes('channel-points-icons'));
 
-    // 2. Text containing 'resgatou' or 'redeemed'
     const text = node.textContent || '';
     const hasRedeemVerb = /\b(resgatou|redeemed)\b/i.test(text);
 
-    // 3. User notice or reward line
-    const isNotice = (node.getAttribute && node.getAttribute('data-test-selector') === 'user-notice-line') ||
-      node.classList.contains('chat-line__status') ||
-      !!node.querySelector('[data-test-selector="user-notice-line"], .channel-points-reward-line');
-
-    const isReward = hasChannelPointsImg || (hasRedeemVerb && isNotice) || (hasRedeemVerb && hasChannelPointsImg);
+    const isReward = hasChannelPointsImg && hasRedeemVerb;
 
     if (!isReward) return null;
 
@@ -185,17 +269,14 @@
       if (row) return row;
       const pxPx = node.closest('.px-px');
       if (pxPx) return pxPx;
-      const borderL4 = node.closest('.border-l-4');
-      if (borderL4) return borderL4;
     }
 
     if (IS_TWITCH) {
       const row = node.closest(
-        '.chat-line__message, .chat-line__status, [data-a-target="chat-line-message"], [data-test-selector="user-notice-line"], .user-notice-line'
+        '.chat-line__status, div[data-test-selector="user-notice-line"], .chat-line__message, [data-a-target="chat-line-message"]'
       );
       if (row) return row;
 
-      // Climb to direct child of chat-scrollable-area__message-container
       let curr = node;
       while (curr && curr.parentElement && !curr.parentElement.classList.contains('chat-scrollable-area__message-container')) {
         curr = curr.parentElement;
@@ -229,7 +310,8 @@
     if (
       target.id === 'chatroom-messages' ||
       target.classList.contains('no-scrollbar') ||
-      target.classList.contains('chat-scrollable-area__message-container')
+      target.classList.contains('chat-scrollable-area__message-container') ||
+      target.hasAttribute('data-stream-cleaner-safe')
     ) {
       return;
     }
@@ -240,6 +322,11 @@
 
   function evaluateNode(node) {
     if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
+
+    if (isProtectedEvent(node)) {
+      markAsSafe(node);
+      return;
+    }
 
     let info = null;
     if (IS_KICK) info = inspectKickNode(node);
@@ -317,8 +404,12 @@
     if (!container) return;
 
     if (IS_KICK) {
-      const items = container.querySelectorAll('[data-index], .px-px, .border-l-4, p.line-clamp-2');
+      const items = container.querySelectorAll('[data-index]');
       items.forEach((item) => {
+        if (isProtectedEvent(item)) {
+          markAsSafe(item);
+          return;
+        }
         const info = inspectKickNode(item);
         if (info && info.isReward) {
           if (shouldSuppress(info)) {
@@ -336,9 +427,13 @@
 
     if (IS_TWITCH) {
       const items = container.querySelectorAll(
-        '.chat-line__message, .chat-line__status, [data-a-target="chat-line-message"], [data-test-selector="user-notice-line"], div:has(img[src*="channel-points"])'
+        '.chat-line__status, div[data-test-selector="user-notice-line"], .chat-line__message'
       );
       items.forEach((item) => {
+        if (isProtectedEvent(item)) {
+          markAsSafe(item);
+          return;
+        }
         const info = inspectTwitchNode(item);
         if (info && info.isReward) {
           if (shouldSuppress(info)) {
